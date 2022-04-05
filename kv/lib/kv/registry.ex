@@ -27,7 +27,9 @@ defmodule KV.Registry do
   end
 
   ## Server callbacks
-
+@doc """
+Init two maps, one for bucket name -> pid and other one for refs -> name
+"""
 @impl true
 def init(:ok) do
   names = %{}
@@ -46,6 +48,7 @@ def handle_cast({:create, name}, {names, refs}) do
   if Map.has_key?(names, name) do
     {:noreply, {names, refs}}
   else
+    # Bad idea link the registry with each bucket, if a bucket crashes the registry crash too.
     {:ok, bucket} = KV.Bucket.start_link([])
     ref = Process.monitor(bucket)
     refs = Map.put(refs, ref, name)
